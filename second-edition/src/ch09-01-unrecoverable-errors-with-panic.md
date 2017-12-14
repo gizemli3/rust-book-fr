@@ -1,33 +1,34 @@
-## Unrecoverable Errors with `panic!`
+## Erreurs Irrécupérables avec `panic!`
 
-Sometimes, bad things happen in your code, and there’s nothing you can do about
-it. In these cases, Rust has the `panic!` macro. When the `panic!` macro
-executes, your program will print a failure message, unwind and clean up the
-stack, and then quit. The most common situation this occurs in is when a bug of
-some kind has been detected, and it’s not clear to the programmer how to handle
-the error.
+Parfois, les choses se passent mal dans votre code, et vous ne pouvez rien y
+faire. Dans ce cas, Rust a la macro `panic!`. Quand la macro `panic!`
+s'exécute, votre programme va afficher un message d'erreur, dévide et nettoie
+la stack, et ensuite ferme le programme. Le cas le plus courant au cours
+duquel cela se produit est quand une bogue a été détecté, et que ce n'est pas
+clair pour le développeur de savoir comment gérer cette erreur.
 
-> ### Unwinding the Stack or Aborting in Response to a `panic!`
->
-> By default, when a `panic!` occurs, the program starts *unwinding*, which
-> means Rust walks back up the stack and cleans up the data from each function
-> it encounters. But this walking back and cleanup is a lot of work. The
-> alternative is to immediately *abort*, which ends the program without
-> cleaning up. Memory that the program was using will then need to be cleaned
-> up by the operating system. If in your project you need to make the resulting
-> binary as small as possible, you can switch from unwinding to aborting on
-> panic by adding `panic = 'abort'` to the appropriate `[profile]` sections in
-> your *Cargo.toml* file. For example, if you want to abort on panic in release
-> mode, add this:
->
+> ### Dévider la stack ou abandon en réponse à un `panic!`
+> Par défaut, quand un `panic!` se produit, le programme commence par
+> *dévider*, ce qui veut dire que Rust retourne en arrière dans la stack et
+> nettoie les données de chaque fonction qu'il trouve. Mais cette marche en
+> arrière et le nettoyage demande beaucoup de ressources. L'alternative est
+> d'abandonner *immédiatement* l'exécution, qui arrête le programme sans
+> nettoyage. La mémoire qu'utilisait le programme va ensuite devoir être
+> nettoyée par le système d'exploitation. Si dans votre projet vous avez besoin
+> de construire un exécutable le plus petit possible, vous pouvez passer du
+> dévidage à l'abandon lors d'un panic en ajoutant `panic = 'abort'` aux
+> sections `[profile]` appropriées dans votre fichier *Cargo.toml*. Par
+> exemple, si vous voulez abandonner lors d'un panic en mode relase, ajoutez
+> ceci :
+> 
 > ```toml
 > [profile.release]
 > panic = 'abort'
 > ```
 
-Let’s try calling `panic!` in a simple program:
+Essayons d'appeller `panic!` dans un programme simple :
 
-<span class="filename">Filename: src/main.rs</span>
+<span class="filename">Fichier: src/main.rs</span>
 
 ```rust,should_panic
 fn main() {
@@ -35,7 +36,8 @@ fn main() {
 }
 ```
 
-When you run the program, you’ll see something like this:
+Quand vous lancez le programme, vous allez voir quelquechose qui ressemble à
+cela :
 
 ```text
 $ cargo run
@@ -47,19 +49,20 @@ note: Run with `RUST_BACKTRACE=1` for a backtrace.
 error: Process didn't exit successfully: `target/debug/panic` (exit code: 101)
 ```
 
-The call to `panic!` causes the error message contained in the last three
-lines. The first line shows our panic message and the place in our source code
-where the panic occurred: *src/main.rs:2* indicates that it’s the second line
-of our *src/main.rs* file.
+L'utilisation de `panic!` déclenche le message d'erreur présent dans les trois
+dernières lignes. La première ligne affiche le message associé au panic et
+l'emplacement dans notre code source où se produit le panic : *src/main.rs:2*
+indique que c'est la ligne 2 de notre fichier *src/main.rs*.
 
-In this case, the line indicated is part of our code, and if we go to that
-line, we see the `panic!` macro call. In other cases, the `panic!` call might
-be in code that our code calls. The filename and line number reported by the
-error message will be someone else’s code where the `panic!` macro is called,
-not the line of our code that eventually led to the `panic!` call. We can use
-the backtrace of the functions the `panic!` call came from to figure out the
-part of our code that is causing the problem. We’ll discuss what a backtrace is
-in more detail next.
+Dans cet exemple, la ligne indiquée fait partie de notre code, et si nous
+allons voir cette ligne, nous verrons l'appel à la macro `panic!`. Dans
+d'autres cas, l'appel de `panic!` pourrait se produire dans du code que nôtre
+code utilise. Le nom du fichier et la ligne indiquée par le message d'erreur
+sera alors du code de quelqu'un d'autre où la macro `panic!` est appellée, pas
+la ligne de notre code qui pourrait mener à cet appel de `panic!`. Nous pouvons
+utiliser la backtrace des fonctions qui appellent le `panic!` pour comprendre
+la partie de notre code qui pose problème. Nous alons maintenant parler plus en
+détail de ce qu'est une backtrace.
 
 ### Using a `panic!` Backtrace
 
